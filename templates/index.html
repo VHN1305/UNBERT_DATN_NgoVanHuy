@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News List</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+
+        .news-box {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #fff;
+        }
+
+        .news-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .news-abstract {
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .news-category, .news-sub-category {
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .news-url {
+            display: block;
+            margin-top: 10px;
+            color: #007bff;
+        }
+
+        .scroll-box {
+            max-height: 200px;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="form-group">
+        <label for="impressionIdSelect">Select or Enter Impression ID:</label>
+        <input list="impressionIds" id="impressionIdSelect" class="form-control">
+        <datalist id="impressionIds">
+            <!-- Options will be populated here -->
+        </datalist>
+    </div>
+    <button id="fetchNewsButton" class="btn btn-primary mb-4">Fetch News</button>
+    <div id="newsList"></div>
+</div>
+
+ <script>
+        $(document).ready(function () {
+            // Populate impression ID datalist with sample data
+            const impressionIds = [1, 2, 3, 4, 5]; // Replace this with actual data
+            const impressionIdDatalist = $('#impressionIds');
+            impressionIds.forEach(function (id) {
+                impressionIdDatalist.append($('<option></option>').val(id).text(id));
+            });
+
+            $('#fetchNewsButton').on('click', async function () {
+                const selectedImpressionId = $('#impressionIdSelect').val();
+                if (selectedImpressionId) {
+                    $('#newsList').empty();
+                    await fetchNewsList(selectedImpressionId);
+                    await fetchNewsList2(selectedImpressionId);
+                }
+            });
+
+            async function fetchNewsList(impressionId) {
+                try {
+                    const response = await fetch(`http://127.0.0.1:5000/get_user_list/${impressionId}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch user list');
+                    }
+                    const data = await response.json();
+
+                    displayNews(data, 'User History News');
+
+                } catch (error) {
+                    console.error('Error fetching user list:', error);
+                }
+            }
+
+            async function fetchNewsList2(impressionId) {
+                try {
+                    const response = await fetch(`http://127.0.0.1:5000/get_recommend_list/${impressionId}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch recommended news list');
+                    }
+                    const data = await response.json();
+
+                    displayNews(data, 'Recommended News');
+
+                } catch (error) {
+                    console.error('Error fetching recommended news list:', error);
+                }
+            }
+
+            function displayNews(data, title) {
+                const newsList = $('#newsList');
+                const newsHeader = $('<h1 class="text-center"></h1>').text(title).css({
+    'font-size': '100px'
+});
+                newsList.append(newsHeader);
+
+                data.forEach(news => {
+                    const newsBox = $('<div class="news-box"></div>');
+                    const newsTitle = $('<div class="news-title"></div>').text(news.news_title);
+                    const newsAbstract = $('<div class="news-abstract"></div>').text(news.news_abstract ? news.news_abstract.toString() : "N/A");
+                    const newsCategory = $('<div class="news-category"></div>').text('Category: ' + news.news_category);
+                    const newsSubCategory = $('<div class="news-sub-category"></div>').text('Sub-category: ' + news.news_sub_category);
+                    const newsUrl = $('<a class="news-url" target="_blank"></a>').attr('href', news.news_url).text('Read more');
+
+                    newsBox.append(newsTitle, newsAbstract, newsCategory, newsSubCategory, newsUrl);
+                    newsList.append(newsBox);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
